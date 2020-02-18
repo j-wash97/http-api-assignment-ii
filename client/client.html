@@ -4,9 +4,92 @@
   <title>Our simple HTTP server</title>
   <link rel="stylesheet" type="text/css" href="/style.css">
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
-  <script type="text/babel">
+  <script>
+    // Dumb jQuery
+    const $ = query => { return document.querySelector(query); };
 
+    window.onload = () => {
+      const content = $('#content');
+      const nameForm = $('#nameForm');
+      const userForm = $('#userForm');
+
+      nameForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const xhr = new XMLHttpRequest();
+        xhr.open(nameForm.getAttribute('method'), nameForm.getAttribute('action'));
+        xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        xhr.setRequestHeader ('Accept', 'application/json');
+
+        xhr.onload = () => {
+          const h1 = document.createElement('h1');
+
+          switch(xhr.status) {
+            case 201:
+              h1.textContent = 'User Created';
+              break;
+            case 204:
+              h1.textContent = 'User Updated';
+              break;
+            case 400:
+              h1.textContent = 'Missing Parameters';
+              break;
+          }
+
+          content.innerHTML = '';
+          content.appendChild(h1);
+
+          if (JSON.parse(xhr.response).message) {
+            const p = document.createElement('p');
+            p.textContent = JSON.parse(xhr.response).message;
+            content.appendChild(p);
+          }
+        };
+
+        xhr.send(`name=${$('#nameField').value}&age=${$('#ageField').value}`);
+
+        return false;
+      });
+
+      userForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const xhr = new XMLHttpRequest();
+        xhr.open($('#methodSelect').value, $('#urlField').value);
+        xhr.setRequestHeader ('Accept', 'application/json');
+        
+        xhr.onload = () => {
+          const h1 = document.createElement('h1');
+
+          switch(xhr.status) {
+            case 200:
+              h1.textContent = 'Success';
+              break;
+            case 404:
+              h1.textContent = 'Not Found';
+              break;
+          }
+
+          content.innerHTML = '';
+          content.appendChild(h1);
+
+          if (JSON.parse(xhr.response).message) {
+            const p = document.createElement('p');
+            p.textContent = JSON.parse(xhr.response).message;
+            content.appendChild(p);
+          }
+          else if (JSON.parse(xhr.response).users) {
+            const p = document.createElement('p');
+            p.textContent = JSON.stringify(JSON.parse(xhr.response).users);
+            content.appendChild(p);
+          }
+        };
+
+        xhr.send();
+
+        return false;
+      });
+    };
   </script>
 </head>
 <body>
